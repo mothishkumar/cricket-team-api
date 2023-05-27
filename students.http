@@ -1,0 +1,4 @@
+get http://localhost:3000/student/
+
+###
+get http://localhost:3000/student?mothish/

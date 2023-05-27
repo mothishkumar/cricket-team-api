@@ -7,7 +7,7 @@ const sqlite3 = require("sqlite3");
 
 app.use(express.json());
 
-const dbPath = path.join(__dirname, "cricketTeam.db");
+const dbPath = path.join(__dirname, "students.db");
 let db = null;
 
 const initializeDBAndServer = async () => {
@@ -27,76 +27,34 @@ const initializeDBAndServer = async () => {
 
 initializeDBAndServer();
 
-const convertDbobject = (dbobject) => {
-  return {
-    playerId: dbobject.player_id,
-    playerName: dbobject.player_name,
-    jerseyNumber: dbobject.jersey_number,
-    role: dbobject.role,
-  };
-};
-
-app.get("/players/", async (request, response) => {
-  const getPlayerQuery = `
-        select *
-        from cricket_Team;
-        `;
-  const players = await db.all(getPlayerQuery);
-  response.send(players.map((eachplayer) => convertDbobject(eachplayer)));
+app.get("/student/", async (request, response) => {
+  const getStudentQuery = `
+          select *
+          from student;
+          `;
+  const students = await db.all(getStudentQuery);
+  response.send(students);
 });
 
-app.get("/players/:playerId/", async (request, response) => {
-  const { playerId } = request.params;
-  const getplayerQuerybyid = `
-    select * 
-    from cricket_Team
-    where player_id=${playerId};
-    `;
-  const player = await db.get(getplayerQuerybyid);
-  response.send(convertDbobject(player));
-});
-
-app.post("/players/", async (request, response) => {
-  const playerDetails = request.body;
-  const { playerName, jerseyNumber, role } = playerDetails;
-  const addPlayerQuery = `
-    INSERT INTO cricket_Team
-    (player_name,jersey_number,role)
-    VALUES
-    (
-        '${playerName}',
-        ${jerseyNumber},
-        '${role}'
-    );
-    `;
-  const dbResponse = await db.run(addPlayerQuery);
-  response.send("Player Added to Team");
-});
-
-app.put("/players/:playerId/", async (request, response) => {
-  const { playerId } = request.params;
-  const playerDetails = request.body;
-  const { playerName, jerseyNumber, role } = playerDetails;
-  const updatePlayerQuery = `
-        update cricket_Team
-        set 
-        player_name='${playerName}',
-        jersey_number=${jerseyNumber},
-        role='${role}'
-        where player_id=${playerId};
-    `;
-  await db.run(updatePlayerQuery);
-  response.send("Player Details Updated");
-});
-
-app.delete("/players/:playerId/", async (request, response) => {
-  const { playerId } = request.params;
-  const deletePlayerquery = `
-        delete from cricket_Team 
-        where player_id=${playerId};
-    `;
-  await db.run(deletePlayerquery);
-  response.send("Player Removed");
+app.get("/student/", async (request, response) => {
+  const {
+    offset = 2,
+    limit = 5,
+    search_q = "",
+    order = "ASC",
+    order_by = "id",
+  } = request.query;
+  const getstudentQuery = `
+    SELECT
+      *
+    FROM
+     student
+    WHERE
+     name LIKE '%${search_q}%'
+     ORDER BY ${order_by} ${order}
+    LIMIT ${limit} OFFSET ${offset};`;
+  const studentArray = await db.get(getstudentQuery);
+  response.send(studentArray);
 });
 
 module.exports = app;
